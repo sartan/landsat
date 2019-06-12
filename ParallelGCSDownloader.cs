@@ -9,6 +9,7 @@ namespace landsat
     public class ParallelGcsDownloader : IGcsDownloader
     {
         private readonly StorageClient _storageClient;
+        private static readonly int MaxRetries = 3;
 
         public ParallelGcsDownloader(StorageClient storageClient)
         {
@@ -25,10 +26,11 @@ namespace landsat
             }
 
             destination = Path.GetFileName(destination);
-            objects.AsParallel().ForAll(o => WriteObjectToFileSystem(bucket, o, destination));
+            objects.Where(o => o.Name.EndsWith(".txt")).Take(2000).AsParallel()
+                .ForAll(o => DownloadObject(bucket, o, destination));
         }
 
-        private void WriteObjectToFileSystem(string bucket, GcsObject obj, string destinationRootDir)
+        private void DownloadObject(string bucket, GcsObject obj, string destinationRootDir)
         {
             var destinationFile = Path.Combine(destinationRootDir, obj.Name);
             var destinationDir = string.Join("/", destinationFile.Split("/").SkipLast(1));
@@ -36,6 +38,32 @@ namespace landsat
             // Blindly call even if directory already exists
             Directory.CreateDirectory(destinationDir);
 
+            var retriesLeft = MaxRetries;
+
+            while (true)
+            {
+                try
+                {
+                    TryDownloadObject(bucket, obj, destinationFile);
+                    break;
+                }
+                // TODO: Handle specific exceptions
+                catch
+                {
+                    if (--retriesLeft == 0)
+                    {
+                        // Intentionally swallow exception, so that other downloads can proceed
+                        // TODO: Log original exception
+                        Console.WriteLine($"Failed to download {destinationFile}");
+                    }
+
+                    // TODO: Sleep before retrying?
+                }
+            }
+        }
+
+        private void TryDownloadObject(string bucket, GcsObject obj, string destinationFile)
+        {
             using (var outputFile = File.OpenWrite(destinationFile))
             {
                 _storageClient.DownloadObject(bucket, obj.Name, outputFile);
