@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Google.Api.Gax;
-using Google.Apis.Storage.v1.Data;
+using System.IO.Abstractions;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.DependencyInjection;
-using Object = System.Object;
 
 namespace GCSDownload
 {
@@ -29,11 +22,12 @@ namespace GCSDownload
             const string downloadDir = "./data";
 
             var serviceProvider = new ServiceCollection()
+                .AddScoped<IFileSystem, FileSystem>()
                 .AddScoped(sp => StorageClient.Create())
-                .AddScoped<IGcsDownloader, ParallelGcsDownloader>()
+                .AddScoped<IDownloader, ParallelDownloader>()
                 .BuildServiceProvider();
 
-            var downloader = serviceProvider.GetService<IGcsDownloader>();
+            var downloader = serviceProvider.GetService<IDownloader>();
 
             downloader.Download(
                 bucket: bucketName,

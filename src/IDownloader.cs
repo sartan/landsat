@@ -1,6 +1,6 @@
 namespace GCSDownload
 {
-    public interface IGcsDownloader
+    public interface IDownloader
     {
         void Download(string bucket, string prefix, string destination);
     }
