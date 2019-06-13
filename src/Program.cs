@@ -10,7 +10,7 @@ using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.DependencyInjection;
 using Object = System.Object;
 
-namespace landsat
+namespace GCSDownload
 {
     class Program
     {

@@ -1,4 +1,4 @@
-namespace landsat
+namespace GCSDownload
 {
     public interface IGcsDownloader
     {

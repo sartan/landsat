@@ -4,7 +4,7 @@ using System.Linq;
 using Google.Cloud.Storage.V1;
 using GcsObject = Google.Apis.Storage.v1.Data.Object;
 
-namespace landsat
+namespace GCSDownload
 {
     public class ParallelGcsDownloader : IGcsDownloader
     {
