@@ -46,7 +46,7 @@ namespace GCSDownload
             {
                 try
                 {
-                    Console.WriteLine($"Downloading {destinationFile}");
+                    Console.WriteLine($"Downloading {obj.Name}");
 
                     // TODO: Split downloading and writing to disk so things
                     // like exceptions and retries can be handled independently
@@ -58,16 +58,17 @@ namespace GCSDownload
                 {
                     if (--retriesLeft == 0)
                     {
-                        Console.WriteLine($"Failed to download {destinationFile} after {MaxRetries} attempts");
+                        Console.WriteLine($"Failed to download {obj.Name} after {MaxRetries} attempts");
                         return;
                     }
 
                     // TODO: Sleep before retrying
-                    Console.WriteLine($"Retrying to download {destinationFile}");
+                    Console.WriteLine($"Retrying to download {obj.Name}");
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Failed to download {destinationFile}");
+                    Console.WriteLine($"Failed to download {obj.Name}");
+                    return;
                 }
             }
         }
