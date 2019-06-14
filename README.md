@@ -12,7 +12,7 @@ Downloads contents of a GCS bucket to a specified local path.
 1. Run the app:
     ```
     cd src
-    dotnet run -- bucket-name prefix downloaded-data
+    dotnet run -- bucket-name prefix download-directory
     ```
 
 **Example usage**
