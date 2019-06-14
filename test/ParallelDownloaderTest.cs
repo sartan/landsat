@@ -113,6 +113,31 @@ namespace GCSDownloadTest
                 Times.Exactly(ParallelDownloader.MaxRetries)
             );
         }
+        
+        [Fact]
+        public void Download_DoesNotRetryOnGeneralFailure()
+        {
+            _storageClient
+                .Setup(sc => sc.ListObjects(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ListObjectsOptions>()))
+                .Returns(new TestPagedEnumerable(new List<Object>
+                {
+                    new Object {Name = "/a/prefix/failing-file-to-retry"}
+                }));
+
+            _storageClient.Setup(sc => sc.DownloadObject(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<MockFileStream>(),
+                It.IsAny<DownloadObjectOptions>(),
+                It.IsAny<IProgress<IDownloadProgress>>()
+            )).Throws<Exception>();
+
+
+            _downloader.Download(BucketName, "/a/prefix", "/destination/path");
+
+
+            _storageClient.Verify(sc => sc.DownloadObject(BucketName, "/a/prefix/failing-file-to-retry", It.IsAny<MockFileStream>(), null, null), Times.Exactly(1));
+        }
 
         [Fact]
         public void Download_ContinuesOnDownloadFailure()
