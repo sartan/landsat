@@ -1,6 +1,7 @@
 using System;
 using System.IO.Abstractions;
 using System.Linq;
+using Google;
 using Google.Cloud.Storage.V1;
 using GcsObject = Google.Apis.Storage.v1.Data.Object;
 
@@ -10,7 +11,7 @@ namespace GCSDownload
     {
         private readonly StorageClient _storageClient;
         private readonly IFileSystem _fileSystem;
-        private static readonly int MaxRetries = 3;
+        public static readonly int MaxRetries = 3;
 
         public ParallelDownloader(StorageClient storageClient, IFileSystem fileSystem)
         {
@@ -50,20 +51,21 @@ namespace GCSDownload
                     // and handle exceptions/retries more intelligently.
                     // For example, if download fails we can re-try,
                     // but if the disk is not writable, don't bother.
+                    Console.WriteLine($"Downloading {destinationFile}");
+
                     TryDownloadObject(bucket, obj, destinationFile);
                     break;
                 }
-                // TODO: Handle specific exceptions
-                catch
+                catch (GoogleApiException)
                 {
                     if (--retriesLeft == 0)
                     {
-                        // TODO: Log original exception
-                        // Intentionally swallow exception, so that other downloads can proceed
-                        Console.WriteLine($"Failed to download {destinationFile}");
+                        Console.WriteLine($"Failed to download {destinationFile} after {MaxRetries} attempts");
+                        return;
                     }
 
-                    // TODO: Sleep before retrying?
+                    // TODO: Sleep before retrying
+                    Console.WriteLine($"Retrying to download {destinationFile}");
                 }
             }
         }
@@ -72,8 +74,8 @@ namespace GCSDownload
         {
             using (var outputFile = _fileSystem.File.OpenWrite(destinationFile))
             {
-                Console.WriteLine($"Writing file: {destinationFile}");
                 _storageClient.DownloadObject(bucket, obj.Name, outputFile);
+                Console.WriteLine($"Writing: {destinationFile}");
             }
         }
     }
