@@ -46,12 +46,10 @@ namespace GCSDownload
             {
                 try
                 {
-                    // TODO: Split downloading and writing to disk concerns
-                    // This would allow us to do the two asynchronously
-                    // and handle exceptions/retries more intelligently.
-                    // For example, if download fails we can re-try,
-                    // but if the disk is not writable, don't bother.
                     Console.WriteLine($"Downloading {destinationFile}");
+
+                    // TODO: Split downloading and writing to disk so things
+                    // like exceptions and retries can be handled independently
 
                     TryDownloadObject(bucket, obj, destinationFile);
                     break;
@@ -66,6 +64,10 @@ namespace GCSDownload
 
                     // TODO: Sleep before retrying
                     Console.WriteLine($"Retrying to download {destinationFile}");
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Failed to download {destinationFile}");
                 }
             }
         }
