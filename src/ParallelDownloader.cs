@@ -21,6 +21,11 @@ namespace GCSDownload
 
         public void Download(string bucket, string prefix, string destination)
         {
+            if (prefix.Equals("/"))
+            {
+                prefix = "";
+            }
+
             var objects = _storageClient.ListObjects(bucket, prefix);
 
             if (objects == null)

@@ -65,6 +65,28 @@ namespace GCSDownloadTest
         }
 
         [Fact]
+        public void Download_RootPrefix()
+        {
+            _storageClient
+                .Setup(sc => sc.ListObjects(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ListObjectsOptions>()))
+                .Returns(new TestPagedEnumerable());
+
+            _storageClient.Setup(sc => sc.DownloadObject(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<MockFileStream>(),
+                It.IsAny<DownloadObjectOptions>(),
+                It.IsAny<IProgress<IDownloadProgress>>()
+            ));
+
+
+            _downloader.Download(BucketName, "/", "/destination/path");
+
+
+            _storageClient.Verify(sc => sc.ListObjects(BucketName, "", null));
+        }
+
+        [Fact]
         public void Download_RetriesOnDownloadFailure()
         {
             _storageClient
@@ -155,6 +177,10 @@ namespace GCSDownloadTest
     internal class TestPagedEnumerable : PagedEnumerable<Objects, Object>
     {
         private readonly ICollection<Object> _objects;
+
+        public TestPagedEnumerable() : this(new List<Object>())
+        {
+        }
 
         public TestPagedEnumerable(ICollection<Object> objects) => _objects = objects;
 
